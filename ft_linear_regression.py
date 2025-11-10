@@ -107,13 +107,16 @@ def draw_data(file: pd.DataFrame) -> None:
 	plt.title('Linear Regression: Price vs Mileage')
 	plt.legend()
 	if not plt.get_backend().lower().startswith('agg'):
-		plt.show()
+		try:
+			plt.show()
+		except KeyboardInterrupt:
+			plt.close()
 	if args.save:
 		out = 'graph/regression.png'
 		if not os.path.exists("graph"):
 			os.makedirs("graph")
 		plt.savefig(out, dpi=150, bbox_inches='tight')
-		print(f"Plot saved to {out}")
+		print(f"Graph saved to {out}")
 	plt.close()
 
 
@@ -124,13 +127,16 @@ def draw_rmse() -> None:
 	plt.xlabel("Epoch")
 	plt.ylabel("RMSE ($)")
 	if not plt.get_backend().lower().startswith('agg'):
-		plt.show()
+		try:
+			plt.show()
+		except KeyboardInterrupt:
+			plt.close()
 	if args.save:
 		out = 'graph/rmse.png'
 		if not os.path.exists("graph"):
 			os.makedirs("graph")
 		plt.savefig(out, dpi=150, bbox_inches='tight')
-		print(f"Plot saved to {out}")
+		print(f"Graph saved to {out}")
 	plt.close()
 
 

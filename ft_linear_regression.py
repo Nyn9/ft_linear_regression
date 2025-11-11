@@ -60,7 +60,7 @@ def linear_regression(file: pd.DataFrame) -> None:
 
 	m = len(price)
 
-	for epoch in range(500000):
+	for epoch in range(int(args.epochs)):
 		sumT0 = sum(estimate_price(mil[i]) - price[i] for i in range(m))
 		sumT1 = sum((estimate_price(mil[i]) - price[i]) * mil[i] for i in range(m))
 
@@ -74,16 +74,15 @@ def linear_regression(file: pd.DataFrame) -> None:
 		cost = sum((estimate_price(mil[i]) - price[i])**2 for i in range(m)) / (2*m)
 
 		if args.verbose:
-			print(f"Epoch {epoch} :")
+			print(f"Epoch {epoch + 1} :")
 			get_real_theta(file)
 			print(f"RMSE : {rmse}")
 			print("------------")
 
-		if last_cost - cost < 1e-9:
-			print(f"Number of epochs : {epoch}")
+		if last_cost - cost < 1e-9 and args.limit:
 			break
 		last_cost = cost
-
+	print(f"Number of epochs : {epoch + 1}")
 	print(f"RMSE = {rmse}")
 
 
@@ -106,17 +105,16 @@ def draw_data(file: pd.DataFrame) -> None:
 	plt.ylabel('Price ($)')
 	plt.title('Linear Regression: Price vs Mileage')
 	plt.legend()
-	if not plt.get_backend().lower().startswith('agg'):
-		try:
-			plt.show()
-		except KeyboardInterrupt:
-			plt.close()
 	if args.save:
 		out = 'graph/regression.png'
 		if not os.path.exists("graph"):
 			os.makedirs("graph")
 		plt.savefig(out, dpi=150, bbox_inches='tight')
 		print(f"Graph saved to {out}")
+	try:
+		plt.show()
+	except KeyboardInterrupt:
+		pass
 	plt.close()
 
 
@@ -126,17 +124,16 @@ def draw_rmse() -> None:
 	plt.plot(rmse_tab)
 	plt.xlabel("Epoch")
 	plt.ylabel("RMSE ($)")
-	if not plt.get_backend().lower().startswith('agg'):
-		try:
-			plt.show()
-		except KeyboardInterrupt:
-			plt.close()
 	if args.save:
 		out = 'graph/rmse.png'
 		if not os.path.exists("graph"):
 			os.makedirs("graph")
 		plt.savefig(out, dpi=150, bbox_inches='tight')
 		print(f"Graph saved to {out}")
+	try:
+		plt.show()
+	except KeyboardInterrupt:
+		pass
 	plt.close()
 
 
@@ -156,15 +153,25 @@ def stock_values(file) -> None:
 		print(f"Error saving theta values: {e}")
 
 
-def set_args():
-	parser.add_argument("-v", "--verbose", action="store_true", help="Show the detailled information")
-	parser.add_argument("-g", "--graph", type=str, choices=["d", "r", "rd", "dr"], help="Show the choosen graph")
-	parser.add_argument("-s", "--save", action="store_true", help="Save the choosen graph")
+def set_args() -> None:
+	"""Set command-line arguments."""
+	parser.add_argument("-v", "--verbose", action="store_true", help="Show the detailled information.")
+	parser.add_argument("-g", "--graph", type=str, choices=["d", "r", "rd", "dr"], help="Show the chosen graph.")
+	parser.add_argument("-s", "--save", action="store_true", help="Save the chosen graph.")
+	parser.add_argument("-l", "--limit", action="store_true", help="Stop iterations when the change in cost is less than 1e-9.")
+	parser.add_argument("-e", "--epochs", type=int, default=2000, help="Number of epochs for training (default: 2000).")
 
 
 def main():
 	set_args()
 	args = parser.parse_args()
+	try:
+		value = int(args.epochs)
+		if value <= 0:
+			raise argparse.ArgumentTypeError("Number of epochs must be a positive integer.")
+	except argparse.ArgumentTypeError as e:
+		print(f"Argument error: {e}")
+		return
 	file = load_file('data/data.csv')
 	if file is None:
 		return

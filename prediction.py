@@ -34,7 +34,7 @@ def main():
 		except ValueError:
 			print("Veuillez entrer un nombre valide.")
 			continue
-		except EOFError:
+		except (EOFError, KeyboardInterrupt):
 			print("\nFin de l'entrée.")
 			return
 		price = estimatePrice(mileage, theta0, theta1)
